@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แดชบอร์ดข้อมูลขยะมูลฝอย | สคพ.2</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+:root{--green:#245b43;--green2:#43815d;--teal:#3e8f8a;--ink:#1f3028;--muted:#718078;--bg:#f4f7f4;--line:#e1e9e2;--white:#fff;--amber:#b7791f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Tahoma,"Noto Sans Thai",system-ui,sans-serif;color:var(--ink)}button,input,select{font:inherit}
+header{background:linear-gradient(115deg,#194b37,#2d7252);color:#fff;padding:22px max(22px,calc((100% - 1240px)/2));}
+.brand{display:flex;align-items:center;gap:14px}.logo{width:58px;height:58px;border:1px solid #ffffff80;border-radius:16px;display:grid;place-items:center;background:#ffffff18;font-size:24px;flex:none}.brand h1{font-size:clamp(18px,2.5vw,25px);margin:0 0 4px;font-weight:700}.brand p{margin:0;color:#d8e9dc;font-size:14px}.hero{max-width:1240px;margin:25px auto 0}.eyebrow{font-size:12px;letter-spacing:.08em;color:#cde5d4}.hero h2{font-size:clamp(25px,4vw,36px);margin:8px 0}.hero p{color:#e1eee4;margin:0;font-size:14px}
+main{max-width:1240px;margin:0 auto;padding:22px}.toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:12px;background:#fff;padding:16px;border:1px solid var(--line);border-radius:16px;margin-bottom:18px}.field{display:grid;gap:6px;min-width:155px;flex:1}.field label{font-size:12px;color:var(--muted)}select,input{border:1px solid #d8e2da;border-radius:9px;background:#fff;padding:10px 12px;color:var(--ink);min-width:0}button{border:0;border-radius:9px;background:var(--green);color:#fff;padding:11px 15px;cursor:pointer}button.secondary{background:#edf4ee;color:var(--green);border:1px solid #dce8de}button:hover{filter:brightness(.96)}
+.status{font-size:12px;color:var(--muted);width:100%}.status strong{color:var(--green)}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0;box-shadow:0 3px 12px #23452f05}.kpi{position:relative;overflow:hidden}.kpi:after{content:"";position:absolute;width:80px;height:80px;border-radius:50%;right:-24px;top:-26px;background:#e9f3eb}.kpi .label{font-size:13px;color:var(--muted);min-height:38px;position:relative;z-index:1}.kpi .value{font-size:clamp(24px,3vw,32px);font-weight:750;letter-spacing:-.03em;margin:12px 0 4px;color:var(--green);position:relative;z-index:1}.unit{font-size:12px;color:var(--muted)}.section{margin-top:18px}.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:12px}.section-head h3{margin:0;font-size:18px}.section-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.charts{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}.chartbox{height:320px;position:relative}.chartbox.tall{height:360px}.chart-card{padding:20px}.chart-caption{font-size:12px;color:var(--muted);margin-top:12px}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:780px;font-size:13px}th,td{padding:12px 13px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th{background:#f0f5f0;color:#476252;font-weight:700}th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}tbody tr:hover{background:#f8fbf8}.pill{display:inline-block;border-radius:999px;background:#e8f2eb;color:var(--green);padding:4px 8px;font-size:11px}.foot{font-size:12px;color:var(--muted);padding:22px 2px 6px;line-height:1.7}.setup{margin-top:18px}.setup summary{cursor:pointer;color:var(--green);font-weight:700}.setup-inner{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:12px}.notice{padding:12px 14px;background:#fff8e8;border:1px solid #f0dfb7;color:#795c26;border-radius:10px;font-size:12px;line-height:1.6;margin-top:14px}.empty{padding:32px 12px;text-align:center;color:var(--muted)}.hide{display:none!important}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.charts{grid-template-columns:1fr}.chartbox{height:300px}}
+@media(max-width:520px){main{padding:14px}.grid{gap:9px}.card{padding:14px}.toolbar{padding:12px}.field{min-width:130px}.brand{align-items:flex-start}.logo{width:48px;height:48px}.hero{margin-top:20px}.chartbox{height:270px}.setup-inner{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo" aria-label="พื้นที่สำหรับโลโก้กรมควบคุมมลพิษ">🌿</div>
+    <div><h1>สำนักงานสิ่งแวดล้อมและควบคุมมลพิษที่ 2</h1><p>ส่วนการจัดการกากของเสียและสารอันตราย</p></div>
+  </div>
+  <div class="hero"><div class="eyebrow">ENVIRONMENTAL DATA DASHBOARD</div><h2>สถานการณ์ขยะมูลฝอย</h2><p>ข้อมูลพื้นที่รับผิดชอบ 4 จังหวัด · ลำปาง พะเยา แพร่ และน่าน</p></div>
+</header>
+<main>
+  <section class="toolbar" aria-label="ตัวกรองข้อมูล">
+    <div class="field"><label for="yearFilter">ปี พ.ศ.</label><select id="yearFilter"><option value="all">ทุกปี (ดูแนวโน้ม)</option></select></div>
+    <div class="field"><label for="provinceFilter">จังหวัด</label><select id="provinceFilter"><option value="all">ทุกจังหวัด</option><option>ลำปาง</option><option>พะเยา</option><option>แพร่</option><option>น่าน</option></select></div>
+    <div class="field"><label for="metricFilter">ตัวชี้วัดสำหรับกราฟเปรียบเทียบ</label><select id="metricFilter">
+      <option value="generated">ขยะมูลฝอยเกิดขึ้น</option><option value="disposed">นำไปกำจัดอย่างถูกต้อง</option><option value="reused">นำกลับมาใช้ประโยชน์</option><option value="managed">ได้รับการจัดการอย่างถูกต้อง</option>
+    </select></div>
+    <button id="resetBtn" class="secondary">ล้างตัวกรอง</button>
+    <div class="status" id="status"><strong>โหมดตัวอย่าง</strong> — ข้อมูลในหน้านี้เป็นข้อมูลสมมติสำหรับแสดงหน้าตาเท่านั้น กรุณาเชื่อม Google Sheets ก่อนเผยแพร่</div>
+  </section>
+
+  <section class="grid" aria-label="ตัวเลขสรุป">
+    <article class="card kpi"><div class="label">ปริมาณขยะมูลฝอยเกิดขึ้น</div><div class="value" id="kpiGenerated">—</div><div class="unit">ตัน/วัน · รวมจังหวัดที่เลือก</div></article>
+    <article class="card kpi"><div class="label">นำไปกำจัดอย่างถูกต้อง</div><div class="value" id="kpiDisposed">—</div><div class="unit">ตัน/วัน · รวมจังหวัดที่เลือก</div></article>
+    <article class="card kpi"><div class="label">นำกลับมาใช้ประโยชน์</div><div class="value" id="kpiReused">—</div><div class="unit">ตัน/วัน · รวมจังหวัดที่เลือก</div></article>
+    <article class="card kpi"><div class="label">ได้รับการจัดการอย่างถูกต้อง</div><div class="value" id="kpiManaged">—</div><div class="unit">ตัน/วัน · รวมจังหวัดที่เลือก</div></article>
+  </section>
+
+  <section class="section charts">
+    <article class="card chart-card"><div class="section-head"><div><h3>แนวโน้มปริมาณขยะรายปี</h3><p>เปรียบเทียบตัวชี้วัดในช่วงเวลาที่มีข้อมูล</p></div><span class="pill">แนวโน้ม</span></div><div class="chartbox"><canvas id="trendChart" aria-label="กราฟแนวโน้มรายปี"></canvas></div><div class="chart-caption">เมื่อเลือกจังหวัด จะแสดงเฉพาะจังหวัดนั้น หากเลือกทุกจังหวัดจะแสดงผลรวมของพื้นที่</div></article>
+    <article class="card chart-card"><div class="section-head"><div><h3>เปรียบเทียบรายจังหวัด</h3><p id="compareSubtitle">เลือกตัวชี้วัดด้านบน</p></div><span class="pill">4 จังหวัด</span></div><div class="chartbox"><canvas id="compareChart" aria-label="กราฟเปรียบเทียบรายจังหวัด"></canvas></div><div class="chart-caption">เลือกปีที่ต้องการจากตัวกรองด้านบนเพื่อเปรียบเทียบจังหวัดในปีเดียวกัน</div></article>
+  </section>
+
+  <section class="section card"><div class="section-head"><div><h3>รายละเอียดข้อมูลรายจังหวัด</h3><p>ค่าที่ไม่พบข้อมูลจะแสดงเป็นขีด ไม่ตีความเป็นศูนย์</p></div><button id="downloadBtn">ดาวน์โหลด CSV</button></div><div class="table-wrap" id="tableWrap"></div></section>
+
+  <details class="card setup">
+    <summary>ตั้งค่าการเชื่อมต่อ Google Sheets</summary>
+    <div class="setup-inner"><div class="field"><label for="sheetUrl">ลิงก์ CSV ที่เผยแพร่จาก Google Sheets</label><input id="sheetUrl" placeholder="วางลิงก์ CSV ที่เผยแพร่แล้วที่นี่"></div><button id="connectBtn">เชื่อมต่อข้อมูล</button></div>
+    <div class="notice"><b>วิธีตั้งค่า:</b> อัปโหลดไฟล์แม่แบบ Excel ไปยัง Google Drive แล้วเปิดด้วย Google Sheets จากนั้นใช้เมนู File → Share → Publish to web เลือกเฉพาะแผ่นงาน “ข้อมูลขยะ” และรูปแบบ CSV แล้วนำลิงก์ที่ได้มาวางด้านบน หรือใช้ลิงก์ CSV จากระบบเผยแพร่ข้อมูลที่หน่วยงานอนุญาต<br><b>ข้อควรระวัง:</b> การ Publish to web ทำให้ข้อมูลที่เลือกเผยแพร่เข้าถึงได้สาธารณะ ห้ามใส่ข้อมูลภายในหรือข้อมูลส่วนบุคคลในชีตดังกล่าว</div>
+    <p class="chart-caption">คอลัมน์ที่ระบบอ่าน: ปี พ.ศ., จังหวัด และคอลัมน์ปริมาณทั้ง 4 รายการตามชื่อในไฟล์แม่แบบ หากหัวตารางเปลี่ยน ต้องปรับชื่อคอลัมน์ให้ตรงกัน</p>
+  </details>
+  <div class="foot">สำนักงานสิ่งแวดล้อมและควบคุมมลพิษที่ 2 · ส่วนการจัดการกากของเสียและสารอันตราย<br>หน่วยข้อมูล: ตัน/วัน · โปรดตรวจสอบนิยามและแหล่งอ้างอิงของตัวชี้วัดก่อนเผยแพร่ข้อมูลจริง</div>
+</main>
+<script>
+const provinces=['ลำปาง','พะเยา','แพร่','น่าน'];
+const metrics={
+ generated:{label:'ขยะมูลฝอยเกิดขึ้น',key:'generated',header:'ปริมาณขยะมูลฝอยเกิดขึ้น (ตัน/วัน)'},
+ disposed:{label:'นำไปกำจัดอย่างถูกต้อง',key:'disposed',header:'ปริมาณขยะมูลฝอยที่นำไปกำจัดอย่างถูกต้อง (ตัน/วัน)'},
+ reused:{label:'นำกลับมาใช้ประโยชน์',key:'reused',header:'ปริมาณขยะมูลฝอยที่นำกลับมาใช้ประโยชน์ (ตัน/วัน)'},
+ managed:{label:'ได้รับการจัดการอย่างถูกต้อง',key:'managed',header:'ปริมาณขยะมูลฝอยได้รับการจัดการอย่างถูกต้อง (ตัน/วัน)'}
+};
+const headers={year:'ปี พ.ศ.',province:'จังหวัด',generated:metrics.generated.header,disposed:metrics.disposed.header,reused:metrics.reused.header,managed:metrics.managed.header};
+let data=[],isDemo=true,trendChart,compareChart;
+const fmt=n=>n==null||!Number.isFinite(n)?'—':n.toLocaleString('th-TH',{maximumFractionDigits:2});
+const num=v=>{if(v===null||v===undefined||String(v).trim()==='')return null;const n=Number(String(v).replace(/,/g,''));return Number.isFinite(n)?n:null};
+function demoData(){let arr=[];for(let y=2564;y<=2569;y++)provinces.forEach((p,i)=>{let base=[420,170,190,210][i]*(1+(y-2564)*.018);arr.push({year:y,province:p,generated:Math.round(base),disposed:Math.round(base*[.52,.48,.55,.5][i]),reused:Math.round(base*[.26,.3,.24,.28][i]),managed:Math.round(base*[.78,.78,.79,.78][i])})});return arr}
+function normalizeRow(r){
+ const find=(keys)=>{const k=Object.keys(r).find(h=>keys.includes(String(h).trim()));return k===undefined?null:r[k]};
+ return {year:num(find([headers.year,'ปี','year','Year'])),province:String(find([headers.province,'จังหวัด','province','Province'])??'').trim(),
+ generated:num(find([headers.generated,'ขยะเกิดขึ้น','generated'])),
+ disposed:num(find([headers.disposed,'กำจัดถูกต้อง','disposed'])),
+ reused:num(find([headers.reused,'นำกลับมาใช้ประโยชน์','reused'])),
+ managed:num(find([headers.managed,'จัดการถูกต้อง','managed']))};
+}
+function selectedRows(){const y=document.getElementById('yearFilter').value,p=document.getElementById('provinceFilter').value;return data.filter(d=>(y==='all'||String(d.year)===y)&&(p==='all'||d.province===p))}
+function sum(rows,key){const vals=rows.map(r=>r[key]).filter(v=>v!==null&&v!==undefined);return vals.length?vals.reduce((a,b)=>a+b,0):null}
+function years(){return [...new Set(data.map(d=>d.year).filter(Boolean))].sort((a,b)=>a-b)}
+function refreshYearOptions(){const sel=document.getElementById('yearFilter'),old=sel.value;sel.innerHTML='<option value="all">ทุกปี (ดูแนวโน้ม)</option>';years().forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;sel.appendChild(o)});if([...sel.options].some(o=>o.value===old))sel.value=old}
+function renderKPIs(){let rows=selectedRows();Object.keys(metrics).forEach(k=>document.getElementById('kpi'+k[0].toUpperCase()+k.slice(1)).textContent=fmt(sum(rows,k)))}
+function renderCharts(){
+ const yearList=years(),p=document.getElementById('provinceFilter').value,metric=document.getElementById('metricFilter').value;
+ const trendSets=p==='all'? [ {label:'รวม 4 จังหวัด',data:yearList.map(y=>sum(data.filter(d=>d.year===y),metric)),borderColor:'#2d7252',backgroundColor:'#2d72521a',fill:true,tension:.3} ]:
+ [{label:p,data:yearList.map(y=>sum(data.filter(d=>d.year===y&&d.province===p),metric)),borderColor:'#2d7252',backgroundColor:'#2d72521a',fill:true,tension:.3}];
+ if(trendChart)trendChart.destroy();
+ trendChart=new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:yearList,datasets:trendSets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#edf1ed'}},x:{grid:{display:false},title:{display:true,text:'ปี พ.ศ.'}}}}});
+ const yVal=document.getElementById('yearFilter').value;
+ const compareYear=yVal==='all'?(yearList[yearList.length-1]):Number(yVal);
+ document.getElementById('compareSubtitle').textContent=compareYear?'ปี พ.ศ. '+compareYear+' · '+metrics[metric].label:'ยังไม่มีข้อมูลปี';
+ const compareVals=provinces.map(pv=>{const r=data.find(d=>d.year===compareYear&&d.province===pv);return r?r[metric]:null});
+ if(compareChart)compareChart.destroy();
+ compareChart=new Chart(document.getElementById('compareChart'),{type:'bar',data:{labels:provinces,datasets:[{label:metrics[metric].label,data:compareVals,backgroundColor:['#2d7252','#3e8f8a','#8ab99a','#b7d5c0'],borderRadius:7,maxBarThickness:42}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#edf1ed'}},x:{grid:{display:false}}}}});
+}
+function renderTable(){const rows=selectedRows().sort((a,b)=>a.year-b.year||provinces.indexOf(a.province)-provinces.indexOf(b.province));let html='<table><thead><tr><th>ปี พ.ศ.</th><th>จังหวัด</th>';Object.values(metrics).forEach(m=>html+='<th>'+m.label+'<br><small>(ตัน/วัน)</small></th>');html+='</tr></thead><tbody>';rows.forEach(r=>{html+='<tr><td>'+r.year+'</td><td>'+r.province+'</td>';Object.keys(metrics).forEach(k=>html+='<td>'+fmt(r[k])+'</td>');html+='</tr>'});html+='</tbody></table>';document.getElementById('tableWrap').innerHTML=rows.length?html:'<div class="empty">ไม่พบข้อมูลตามตัวกรองที่เลือก</div>'}
+function render(){renderKPIs();renderCharts();renderTable()}
+function setStatus(msg,ok=false){document.getElementById('status').innerHTML='<strong>'+ (ok?'เชื่อมต่อแล้ว':'สถานะข้อมูล') +'</strong> — '+msg}
+async function connectSheet(){
+ const url=document.getElementById('sheetUrl').value.trim();if(!url){setStatus('กรุณาวางลิงก์ CSV จาก Google Sheets ก่อน');return}
+ setStatus('กำลังโหลดข้อมูลจาก Google Sheets…');
+ try{
+  const response=await fetch(url);if(!response.ok)throw new Error('HTTP '+response.status);
+  const csv=await response.text();const parsed=Papa.parse(csv,{header:true,skipEmptyLines:true});
+  if(parsed.errors.length&&parsed.data.length===0)throw new Error('อ่าน CSV ไม่สำเร็จ');
+  const rows=parsed.data.map(normalizeRow).filter(r=>r.year&&provinces.includes(r.province));
+  if(!rows.length)throw new Error('ไม่พบแถวข้อมูลที่มีปีและชื่อจังหวัดตรงกับแม่แบบ กรุณาตรวจสอบหัวตาราง');
+  data=rows;isDemo=false;refreshYearOptions();render();setStatus('โหลดข้อมูลจริง '+rows.length+' แถวจาก Google Sheets แล้ว',true);
+ }catch(e){setStatus('เชื่อมต่อไม่สำเร็จ ('+e.message+'). ตรวจสอบลิงก์เผยแพร่ CSV และสิทธิ์การเข้าถึง');}
+}
+function downloadCSV(){const rows=selectedRows();const head=['ปี พ.ศ.','จังหวัด',...Object.values(metrics).map(m=>m.header)];const lines=[head,...rows.map(r=>[r.year,r.province,r.generated??'',r.disposed??'',r.reused??'',r.managed??''])];const csv='\uFEFF'+lines.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ข้อมูลขยะมูลฝอย_สคพ2.csv';a.click();URL.revokeObjectURL(a.href)}
+document.getElementById('yearFilter').addEventListener('change',render);document.getElementById('provinceFilter').addEventListener('change',render);document.getElementById('metricFilter').addEventListener('change',render);document.getElementById('resetBtn').addEventListener('click',()=>{document.getElementById('yearFilter').value='all';document.getElementById('provinceFilter').value='all';document.getElementById('metricFilter').value='generated';render()});document.getElementById('connectBtn').addEventListener('click',connectSheet);document.getElementById('downloadBtn').addEventListener('click',downloadCSV);
+data=demoData();refreshYearOptions();render();
+</script>
+</body></html>
